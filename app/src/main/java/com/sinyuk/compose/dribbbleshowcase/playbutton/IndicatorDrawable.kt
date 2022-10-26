@@ -1,5 +1,6 @@
 package com.sinyuk.compose.dribbbleshowcase.playbutton
 
+import android.graphics.Matrix
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,6 +13,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.tooling.preview.Preview
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -71,14 +74,20 @@ fun draw(modifier: Modifier = Modifier) {
             path.lineTo(baseLineStart, maxHeight.toPx())
             path.lineTo(maxWidth.toPx().times(1 - horizontalPadding), maxHeight.div(2).toPx())
             path.close()
-            drawPath(path, Color.Red)
 
-            path2.moveTo(baseLineStart, 0f)
-            path2.lineTo(baseLineStart + rectWidth.times(maxWidth.toPx()), 0f)
-            path2.lineTo(baseLineStart + rectWidth.times(maxWidth.toPx()), maxHeight.toPx())
-            path2.lineTo(baseLineStart, maxHeight.toPx())
-            path2.close()
-            drawPath(path2, Color.Blue)
+
+            val rect = path.getBounds()
+
+            val matrix = Matrix()
+            matrix.postRotate(0f, rect.center.x, rect.center.y)
+            path.asAndroidPath().transform(matrix)
+            drawPath(path, Color.LightGray)
+//            path2.moveTo(baseLineStart, 0f)
+//            path2.lineTo(baseLineStart + rectWidth.times(maxWidth.toPx()), 0f)
+//            path2.lineTo(baseLineStart + rectWidth.times(maxWidth.toPx()), maxHeight.toPx())
+//            path2.lineTo(baseLineStart, maxHeight.toPx())
+//            path2.close()
+//            drawPath(path2, Color.Blue)
         }
     }
 
