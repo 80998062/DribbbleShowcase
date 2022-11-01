@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.coil.compose)
 
     implementation(libs.hilt.android)
+    implementation("androidx.compose.animation:animation-graphics:1.1.1")
     kapt(libs.hilt.compiler)
 
     testImplementation(libs.bundles.test)
