@@ -1,5 +1,6 @@
 package com.sinyuk.compose.dribbbleshowcase.playbutton
 
+
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
@@ -87,9 +88,9 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
 
     var currentSection by remember { mutableStateOf(AnimationSection.Morphing) }
     val transition = updateTransition(currentSection)
-    transition.animateDp() {
-
-    }
+//    transition.animateDp() {
+//
+//    }
 
 
 
@@ -119,6 +120,7 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
 
         IconButton(onClick = { isPlaying = !isPlaying }, modifier = Modifier.fillMaxSize()) {
             Icon(imageVector = imageVector, contentDescription = null)
+
         }
     }
 }
