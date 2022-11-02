@@ -2,9 +2,7 @@ package com.sinyuk.compose
 
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.PathNode
-import androidx.compose.ui.graphics.vector.addPathNodes
+import androidx.compose.ui.graphics.vector.*
 
 
 private val defaultAnimation = tween<Float>()
@@ -21,29 +19,24 @@ fun Parent() {
 
     val transition = updateTransition(currentState, label = "")
 
-    val rightPauseBarPathData by rightPauseBar(transition.createChildTransition { isPlaying })
+    val pauseBarLeft by pauseBarLeft(transition.createChildTransition { isPlaying })
 
-    // 我可以用一个 ImageVector 画出 2 个长方形不 一个画完 然后接着 MoveTo
-    // 就是把两个楞的 PathNode 加起来?
 
-    // 那么 在这个 Image 的 pathData 就等于 2 个 三角形/长方形 + 长方形
 
-    // 那么旋转如何处理 ??
-
-    // 从 一个 pathData 到 另一个 pathData 才是 morphing 把
-    // 对于一个 pathData 那么就用 path 自己的 rotate 和  translate 方法?
-    // 卧槽好像可以用 ImageVector??? 里面自己就有很多东东
-    ImageVector.Builder()
-        .addGroup(name = "g_rightBar")
-        .addPath(name = "p_rightBar", pathData = rightPauseBarPathData)
+//    ImageVector.Builder()
+//        .addGroup(name = "pauseBar_L")
+//        .addPath(name = "pauseBar_L", pathData = pauseBarLeft)
 }
 
+
+
+
 @Composable
-fun rightPauseBar(
+fun pauseBarLeft(
     transition: Transition<Boolean>,
 ): State<List<PathNode>> {
     val fraction by transition.animateFloat(
-        label = "RightPauseBar",
+        label = "pauseBarLeft",
         transitionSpec = { tween() }
     ) { isPlaying ->
         if (isPlaying) 1f else 0f
