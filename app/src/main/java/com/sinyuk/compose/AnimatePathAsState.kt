@@ -9,7 +9,80 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 private val defaultAnimation = tween<Float>()
 
 
+@OptIn(ExperimentalTransitionApi::class)
+@Composable
+fun Parent() {
+    val isPlaying by remember {
+        mutableStateOf(false)
+    }
+    var currentState = remember { MutableTransitionState(isPlaying) }
+    // currentState.targetState = true
 
+    val transition = updateTransition(currentState, label = "")
+
+    rightPauseBar(transition.createChildTransition { isPlaying })
+
+    // 我可以用一个 ImageVector 画出 2 个长方形不 一个画完 然后接着 MoveTo
+    // 就是把两个楞的 PathNode 加起来?
+
+    // 那么 在这个 Image 的 pathData 就等于 2 个 三角形/长方形 + 长方形
+
+    // 那么旋转如何处理 ??
+
+    // 从 一个 pathData 到 另一个 pathData 才是 morphing 把
+    // 对于一个 pathData 那么就用 path 自己的 rotate 和  translate 方法?
+    // 卧槽好像可以用 ImageVector??? 里面自己就有很多东东
+}
+
+@Composable
+fun rightPauseBar(
+    transition: Transition<Boolean>,
+): State<List<PathNode>> {
+    val fraction by transition.animateFloat(
+        label = "RightPauseBar",
+        transitionSpec = { tween() }
+    ) { isPlaying ->
+        if (isPlaying) 1f else 0f
+    }
+    val path: List<PathNode> = listOf()
+    var from by remember { mutableStateOf(path) }
+    var to by remember { mutableStateOf(path) }
+    return remember {
+        derivedStateOf {
+            if (canMorph(from, to)) {
+                lerp(from, to, fraction)
+            } else {
+                to
+            }
+        }
+    }
+}
+
+@Composable
+fun xxx(path: List<PathNode>): State<List<PathNode>> {
+    var currentState by remember { mutableStateOf(false) }
+    val transition = updateTransition(currentState, label = "PathNodeTransition")
+
+    val progress by transition.animateFloat(label = "PathNodeTransition") {
+        if (it) {
+            0f
+        } else {
+            1f
+        }
+    }
+    var from by remember { mutableStateOf(path) }
+    var to by remember { mutableStateOf(path) }
+
+    return remember {
+        derivedStateOf {
+            if (canMorph(from, to)) {
+                lerp(from, to, progress)
+            } else {
+                to
+            }
+        }
+    }
+}
 
 @Composable
 fun animatePathAsState(path: String): State<List<PathNode>> {
