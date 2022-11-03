@@ -2,7 +2,6 @@ package com.sinyuk.compose.dribbbleshowcase.playbutton
 
 
 import android.graphics.RectF
-import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,57 +25,43 @@ import com.sinyuk.compose.animatePathAsState
  */
 
 @ExperimentalTransitionApi
-@Preview(widthDp = 200, heightDp = 200)
+@Preview(widthDp = 100, heightDp = 100)
 @Composable
 fun Preview() {
     MaterialTheme {
         Surface {
-            PlayIndicatorStateful()
+            PlayIndicatorStateful(false)
         }
     }
 }
 
 val TAG = "Sinyuk"
 
-private enum class AnimationSection {
-    Morphing,
-    Rolling,
-    Shrinking
-}
-
-@Composable
-private fun Transition<AnimationSection>.animatePathNodes(targetValueByState: @Composable (state: AnimationSection) -> List<PathNode>): State<List<PathNode>> {
-
-    val initialValue = targetValueByState(currentState)
-    val targetValue = targetValueByState(targetState)
-
-
-    return TODO()
-}
-
 @ExperimentalTransitionApi
 @Composable
-fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
-    var isPlaying by remember { mutableStateOf(true) }
+fun PlayIndicatorStateful(isPlaying: Boolean, modifier: Modifier = Modifier) {
+    var currentState by remember { mutableStateOf(isPlaying) }
+
+    val transition = updateTransition(currentState, label = "PlayIndicator")
 
     val viewPort = 100f
     // altitude of a right-angled triangle: h = sqrt(a*a - b*b)
     val altitude = 86.6f
-    val pauseBarWidth = 30f
-    val pauseBarSpacing = 22f
+    val pauseIconWidth = 30f
+    val barSpacing = 22f
 
-    val pauseBarLeftPath = remember {
+    val pauseIconLeftBar = remember {
         listOf(
-            PathNode.MoveTo(0f, 0f), // (0,0)
-            PathNode.LineTo(0f, viewPort), // (0,100)
-            PathNode.LineTo(pauseBarWidth, viewPort), // (30,100)
-            PathNode.LineTo(pauseBarWidth, viewPort / 2), // (30,50)
-            PathNode.LineTo(pauseBarWidth, 0f), // (30,0)
+            PathNode.MoveTo(0f, 0f),
+            PathNode.LineTo(0f, viewPort),
+            PathNode.LineTo(pauseIconWidth, viewPort),
+            PathNode.LineTo(pauseIconWidth, viewPort / 2),
+            PathNode.LineTo(pauseIconWidth, 0f),
             PathNode.Close
         )
     }
 
-    val playTrianglePath = remember {
+    val playIcon = remember {
         listOf(
             PathNode.MoveTo(0f, 0f), // (0,0)
             PathNode.LineTo(0f, viewPort), // (0,100)
@@ -87,9 +73,9 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
     }
 
 
-    val pauseBarRightPath = remember {
-        val startX = pauseBarSpacing + pauseBarWidth
-        val endX = pauseBarSpacing + pauseBarWidth * 2
+    val pauseIconRightBar = remember {
+        val startX = barSpacing + pauseIconWidth
+        val endX = barSpacing + pauseIconWidth * 2
         listOf(
             PathNode.MoveTo(startX, 0f),
             PathNode.LineTo(startX, viewPort),
@@ -99,34 +85,26 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
         )
     }
 
-    val pauseBarShortenRectF = RectF(
-        pauseBarSpacing + pauseBarWidth,
-        viewPort - pauseBarSpacing,
-        pauseBarSpacing + pauseBarWidth * 2,
+    val rotatedCube = RectF(
+        barSpacing + pauseIconWidth,
+        viewPort - barSpacing,
+        barSpacing + pauseIconWidth * 2,
         viewPort
     )
 
-    val pauseBarRightPathShorten = remember {
+    val rotatedCubePath = remember {
         listOf(
-            PathNode.MoveTo(pauseBarShortenRectF.left, pauseBarShortenRectF.top),
-            PathNode.LineTo(pauseBarShortenRectF.left, pauseBarShortenRectF.bottom),
-            PathNode.LineTo(pauseBarShortenRectF.right, pauseBarShortenRectF.bottom),
-            PathNode.LineTo(pauseBarShortenRectF.right, pauseBarShortenRectF.top),
+            PathNode.MoveTo(rotatedCube.left, rotatedCube.top),
+            PathNode.LineTo(rotatedCube.left, rotatedCube.bottom),
+            PathNode.LineTo(rotatedCube.right, rotatedCube.bottom),
+            PathNode.LineTo(rotatedCube.right, rotatedCube.top),
             PathNode.Close
         )
     }
 
-    var currentState = remember { MutableTransitionState(isPlaying) }
-    // currentState.targetState = true
-
-    val transition = updateTransition(currentState, label = "")
-
-    val pauseBarRightParams by pauseBarRight(transition.createChildTransition { isPlaying })
-
-//    transition.animateDp() {
-//
-//    }
-
+    val groupParams by pauseCubeState(
+        rotatedCube,
+        transition.createChildTransition { currentState })
 
     BoxWithConstraints(
         modifier = modifier
@@ -134,19 +112,17 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
             .background(MaterialTheme.colorScheme.secondaryContainer)
             .fillMaxSize()
     ) {
-        val pathData by animatePathAsState(
-            if (isPlaying) pauseBarRightPathShorten
-            else pauseBarRightPath
+        val pathDataAtLeft by animatePathAsState(
+            if (currentState) playIcon
+            else pauseIconLeftBar
         )
 
-//        val pathData = mutableListOf<PathNode>()
+        val pathDataAtRight by animatePathAsState(
+            if (currentState) rotatedCubePath
+            else pauseIconRightBar
+        )
 
-//        pathData.addAll(pauseBarLeftPath)
-//        pathData.addAll(pauseBarRightPathShorten)
-
-        val fillColor = SolidColor(MaterialTheme.colorScheme.onSurface)
-
-        val imageVector by remember(fillColor) {
+        val imageVector by remember {
             derivedStateOf {
                 ImageVector.Builder(
                     defaultWidth = 100.dp,
@@ -155,18 +131,21 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
                     viewportHeight = viewPort
                 )
                     .addGroup(
-                        name = "pathBarRight",
-//                        rotate = pauseBarRightParams.rotate,
-//                        pivotX = pauseBarRightParams.pivotX,
-//                        pivotY = pauseBarRightParams.pivotY,
-                        translationX = pauseBarRightParams.translationX
+                        name = "right",
+//                        rotate = groupParams.rotate,
+//                        pivotX = groupParams.pivotX,
+//                        pivotY = groupParams.pivotY,
                     )
-                    .addPath(pathData = pauseBarRightPathShorten, fill = fillColor)
+                    .addPath(pathData = pathDataAtRight, fill = SolidColor(Color.LightGray))
+                    .clearGroup()
+                    .addGroup(name = "left")
+                    .addPath(pathData = pathDataAtLeft, fill = SolidColor(Color.LightGray))
+                    .clearGroup()
                     .build()
             }
         }
 
-        IconButton(onClick = { isPlaying = !isPlaying }, modifier = Modifier.fillMaxSize()) {
+        IconButton(onClick = { currentState = !currentState }, modifier = Modifier.fillMaxSize()) {
             Icon(imageVector = imageVector, contentDescription = null)
 
         }
@@ -175,44 +154,37 @@ fun PlayIndicatorStateful(modifier: Modifier = Modifier) {
 
 
 @Immutable
-private data class Params(
+private data class GroupParams(
     val rotate: Float = DefaultRotation,
     val pivotX: Float = DefaultPivotX,
-    val pivotY: Float = DefaultPivotY,
-    val translationX: Float = DefaultTranslationX,
-    val translationY: Float = DefaultTranslationY,
+    val pivotY: Float = DefaultPivotY
 )
 
 
 @Composable
-private fun pauseBarRight(
+private fun pauseCubeState(
+    rectF: RectF,
     transition: Transition<Boolean>,
-): State<Params> {
+): State<GroupParams> {
     val fraction by transition.animateFloat(
-        label = "pauseBarRight",
-        transitionSpec = { tween(durationMillis = 2000) }
-    ) { isPlaying ->
-        if (isPlaying) 1f else 0f
-    }
-    return remember {
-        derivedStateOf {
-            val rotate = if (fraction < 0.5) {
-                lerp(0f, 90f, fraction)
-            } else {
-                lerp(90f, 180f, fraction)
-            }
-            val pivot = if (fraction < 0.5) {
-                Pair(0f, 1f)
-            } else {
-                Pair(0f, 0f)
-            }
-            val offsetX = lerp(0f, -22f, fraction)
+        label = "pauseCube",
+        transitionSpec = { tween() }
+    ) { isPlaying -> if (isPlaying) 1f else 0f }
 
-            Params(
-//                pivotX = pivot.first,
-//                pivotY = pivot.second,
-//                rotate = rotate,
-                translationX = offsetX
+    return remember(rectF) {
+        derivedStateOf {
+//            val rotate = if (fraction <= 0.5f) {
+//                lerp(0f, -180f, fraction)
+//            } else {
+//                lerp(0f, -180f, fraction - 0.5f)
+//            }
+            val rotate = lerp(0f, -180f, fraction)
+            //val pivotX = if (fraction <= 0.5f) rectF.left else (rectF.left - rectF.height())
+            // val pivotX = if (fraction <= 0.5f) 52f else 30f
+            GroupParams(
+                pivotX = 52f,
+                pivotY = 100f,
+                rotate = rotate,
             )
         }
     }
