@@ -6,6 +6,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -117,6 +118,7 @@ private fun PlayPauseAVDStateLess(
             )
             .build()
 
+        rememberScrollState()
         IconButton(
             onClick = onClick,
             modifier = Modifier
@@ -134,6 +136,7 @@ fun Modifier.rotateBy(degrees: Float) = composed(
         var currentRotation by remember {
             mutableStateOf(0f)
         }
+
         LaunchedEffect(degrees) {
             currentRotation += degrees
         }
