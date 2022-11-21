@@ -2,7 +2,8 @@ package com.sinyuk.compose
 
 import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.vector.*
+import androidx.compose.ui.graphics.vector.PathNode
+import androidx.compose.ui.graphics.vector.addPathNodes
 
 
 private val defaultAnimation = tween<Float>()
@@ -22,13 +23,10 @@ fun Parent() {
     val pauseBarLeft by pauseBarLeft(transition.createChildTransition { isPlaying })
 
 
-
 //    ImageVector.Builder()
 //        .addGroup(name = "pauseBar_L")
 //        .addPath(name = "pauseBar_L", pathData = pauseBarLeft)
 }
-
-
 
 
 @Composable
@@ -87,7 +85,10 @@ fun animatePathAsState(path: String): State<List<PathNode>> {
 }
 
 @Composable
-fun animatePathAsState(path: List<PathNode>): State<List<PathNode>> {
+fun animatePathAsState(
+    path: List<PathNode>,
+    spec: AnimationSpec<Float> = tween()
+): State<List<PathNode>> {
 
     var from by remember { mutableStateOf(path) }
     var to by remember { mutableStateOf(path) }
@@ -99,7 +100,7 @@ fun animatePathAsState(path: List<PathNode>): State<List<PathNode>> {
             from = to
             to = path
             progress.snapTo(0f)
-            progress.animateTo(targetValue = 1f)
+            progress.animateTo(targetValue = 1f, animationSpec = spec)
         }
     }
 
@@ -116,7 +117,8 @@ fun animatePathAsState(path: List<PathNode>): State<List<PathNode>> {
 }
 
 // Paths can morph if same size and same node types at same positions.
-private fun canMorph(from: List<PathNode>, to: List<PathNode>): Boolean {
+// Paths should be able to morph. Otherwise no animation will play. Fix your paths using https://shapeshifter.design/
+internal fun canMorph(from: List<PathNode>, to: List<PathNode>): Boolean {
     if (from.size != to.size) {
         return false
     }
@@ -131,7 +133,7 @@ private fun canMorph(from: List<PathNode>, to: List<PathNode>): Boolean {
 }
 
 // Assume paths can morph (see [canMorph]). If not, will throw.
-private fun lerp(
+internal fun lerp(
     fromPath: List<PathNode>,
     toPath: List<PathNode>,
     fraction: Float
@@ -142,7 +144,7 @@ private fun lerp(
     }
 }
 
-private fun lerp(from: PathNode, to: PathNode, fraction: Float): PathNode {
+internal fun lerp(from: PathNode, to: PathNode, fraction: Float): PathNode {
     return when (from) {
         PathNode.Close -> {
             to as PathNode.Close

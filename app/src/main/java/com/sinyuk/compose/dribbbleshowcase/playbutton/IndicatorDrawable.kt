@@ -147,7 +147,6 @@ fun PlayIndicatorStateful(isPlaying: Boolean, modifier: Modifier = Modifier) {
 
         IconButton(onClick = { currentState = !currentState }, modifier = Modifier.fillMaxSize()) {
             Icon(imageVector = imageVector, contentDescription = null)
-
         }
     }
 }
